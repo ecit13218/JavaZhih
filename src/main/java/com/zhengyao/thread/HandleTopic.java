@@ -66,7 +66,7 @@ public class HandleTopic extends Thread {
                             System.out.println("-----------------------线程结束----------------------");
                             break;
                         }
-                        System.out.println(Thread.currentThread() + ">>>");
+                       // System.out.println(Thread.currentThread() + ">>>");
                         //正则匹配
                         String regex = "topic..[0-9]{1,10}";
                         Pattern p = Pattern.compile(regex);
@@ -74,7 +74,7 @@ public class HandleTopic extends Thread {
                         while (m.find()) {
                             //System.out.println(m.group());
                             String s = m.group();
-                            System.out.println("topicID为:" + s.substring(7) + "入队");
+                        //    System.out.println("topicID为:" + s.substring(7) + "入队");
                             count++;
                             Static.SecondtopicID.add(s.substring(7));
                         }

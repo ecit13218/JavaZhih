@@ -7,6 +7,8 @@ import com.zhengyao.thread.HandleTopic;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -15,6 +17,7 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
+import sun.plugin2.os.windows.Windows;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -64,7 +67,8 @@ public class ZhihuUtil {
         cm.setDefaultMaxPerRoute(200);// 对每个指定连接的服务器（指定的ip）可以创建并发20 socket进行访问
         CloseableHttpClient httpClient = HttpClients.custom().setRetryHandler(new DefaultHttpRequestRetryHandler())// 设置请求超时后重试次数
                 // 默认3次
-                .setConnectionManager(cm).build();
+                .setDefaultRequestConfig(RequestConfig.custom()
+                        .setCookieSpec(CookieSpecs.STANDARD).build()).setConnectionManager(cm).build();
 
         System.out.println("--------------- " + Static.topicID.size() + "--------------- ");
         System.out.println("中文");
@@ -99,7 +103,7 @@ public class ZhihuUtil {
 
     public static void getAllUserUrl() throws InterruptedException, SQLException, IOException {
         //这里的线程不能设置太大 由于知乎的反爬机制，同一ip同一时间发过多请求只能响应部分请求
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(10);
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(2);
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(200);// 设置最大连接数
         cm.setDefaultMaxPerRoute(200);// 对每个指定连接的服务器（指定的ip）可以创建并发20 socket进行访问
@@ -107,7 +111,9 @@ public class ZhihuUtil {
         //建立client
         CloseableHttpClient httpClient = HttpClients.custom()
                 .setRetryHandler(new DefaultHttpRequestRetryHandler())// 设置请求超时后重试次数默认3次
-                .setConnectionManager(cm).build();
+                .setConnectionManager(cm).setDefaultRequestConfig(RequestConfig.custom()
+                        .setCookieSpec(CookieSpecs.STANDARD).build())
+               .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36").build();
 
         System.out.println(Static.SecondtopicID.size());
         // 注意这里还是不能用i<MyQueue.SecondtopicID.size()
@@ -124,8 +130,7 @@ public class ZhihuUtil {
                 e.printStackTrace();
             }
         }
-        TimeUnit.SECONDS.sleep(10);
-        System.out.println(Static.map);
+        TimeUnit.SECONDS.sleep(100);
         fixedThreadPool.shutdown();
     }
 
