@@ -2,6 +2,7 @@ package com.zhengyao.util;
 
 
 import com.zhengyao.statics.Static;
+import com.zhengyao.thread.GetUserInfo;
 import com.zhengyao.thread.GetUserUrl;
 import com.zhengyao.thread.HandleTopic;
 import org.apache.http.HttpEntity;
@@ -21,6 +22,8 @@ import sun.plugin2.os.windows.Windows;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -47,13 +50,13 @@ public class ZhihuUtil {
         Pattern p = Pattern.compile(regex);
         Matcher m = p.matcher(body);
         while (m.find()) {
-            System.out.println(m.group());
-            System.out.println(m.start() + "->" + m.end());
-            String s = m.group();
-            System.out.println(s.substring(9, s.length() - 1));
-            Static.topicID.add(m.group().substring(9, s.length() - 1));
+           // System.out.println(m.group());
+            //System.out.println(m.start() + "->" + m.end());
+            //String s = m.group();
+            //System.out.println(s.substring(9, s.length() - 1));
+            Static.topicID.add(m.group().substring(9, m.group().length() - 1));
         }
-        System.out.println("-------------------"+Static.topicID.size()+"size");
+       // System.out.println("-------------------"+Static.topicID.size()+"size");
         response.close();
         EntityUtils.consume(enity);
     }
@@ -70,40 +73,27 @@ public class ZhihuUtil {
                 .setDefaultRequestConfig(RequestConfig.custom()
                         .setCookieSpec(CookieSpecs.STANDARD).build()).setConnectionManager(cm).build();
 
-        System.out.println("--------------- " + Static.topicID.size() + "--------------- ");
-        System.out.println("中文");
+        //System.out.println("--------------- " + Static.topicID.size() + "--------------- ");
         // 注意这里不能写 i < MyQueue.topicID.size() 因为下面拿一个这里始终要变
         int len = Static.topicID.size();
         for (int i = 0; i < 1; i++) {
             String url = "https://www.zhihu.com/node/TopicsPlazzaListV2";
             HttpPost httppost = new HttpPost(url);
-
-            fixedThreadPool.execute(new HandleTopic(httpClient, httppost, Static.topicID.poll()));
             httppost.releaseConnection();
+            fixedThreadPool.execute(new HandleTopic(httpClient, httppost, Static.topicID.poll()));
             System.out.println(i + "---------------------");
 
         }
 
         // 爬取完后进入下一步
         fixedThreadPool.shutdown();
+        threadShutDown(fixedThreadPool,httpClient);
 
-        while (true) {
-
-            if (fixedThreadPool.isTerminated()) {
-                httpClient.close();
-                System.out.println(Static.topicID.size());
-                System.out.println(
-                        "所有的子线程都结束了 获取secondTopicId个数为: "
-                                + Static.SecondtopicID.size() + "\n");
-                break;
-            }
-            Thread.sleep(1000);
-        }
     }
 
     public static void getAllUserUrl() throws InterruptedException, SQLException, IOException {
         //这里的线程不能设置太大 由于知乎的反爬机制，同一ip同一时间发过多请求只能响应部分请求
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(2);
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(5);
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(200);// 设置最大连接数
         cm.setDefaultMaxPerRoute(200);// 对每个指定连接的服务器（指定的ip）可以创建并发20 socket进行访问
@@ -112,8 +102,9 @@ public class ZhihuUtil {
         CloseableHttpClient httpClient = HttpClients.custom()
                 .setRetryHandler(new DefaultHttpRequestRetryHandler())// 设置请求超时后重试次数默认3次
                 .setConnectionManager(cm).setDefaultRequestConfig(RequestConfig.custom()
-                        .setCookieSpec(CookieSpecs.STANDARD).build())
-               .setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36").build();
+                        .setCookieSpec(CookieSpecs.STANDARD).build()).build();
+        //setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD)  设置以后防止Invalid 'expires' attribute 错误
+
 
         System.out.println(Static.SecondtopicID.size());
         // 注意这里还是不能用i<MyQueue.SecondtopicID.size()
@@ -130,8 +121,53 @@ public class ZhihuUtil {
                 e.printStackTrace();
             }
         }
-        TimeUnit.SECONDS.sleep(100);
-        fixedThreadPool.shutdown();
-    }
 
+        fixedThreadPool.shutdown();
+        TimeUnit.SECONDS.sleep(10);
+        //threadShutDown(fixedThreadPool,httpClient);
+//        System.out.println("*******************");
+//        System.out.println(Static.map);
+//        System.out.println(Static.map.size());
+    }
+    public static void getAllUser() throws InterruptedException, SQLException, IOException
+    {
+
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(4);
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        cm.setMaxTotal(200);// 设置最大连接数
+        cm.setDefaultMaxPerRoute(200);// 对每个指定连接的服务器（指定的ip）可以创建并发20 socket进行访问
+        // 上面的设置是我本机对服务器最大的连接数
+        CloseableHttpClient httpClient = HttpClients.custom()
+                .setRetryHandler(new DefaultHttpRequestRetryHandler())// 设置请求超时后重试次数默认3次
+                .setConnectionManager(cm).setDefaultRequestConfig(RequestConfig.custom()
+                        .setCookieSpec(CookieSpecs.STANDARD).build()).build();
+
+
+        Iterator<Map.Entry<String,Integer>> iterator=Static.map.entrySet().iterator();
+        while (iterator.hasNext()){
+            Map.Entry<String,Integer> map=iterator.next();
+            String userurl = "https://www.zhihu.com/people/" +map.getKey();
+            //System.out.println(userurl+">>>>>>>>>");
+            HttpGet httpget = new HttpGet(userurl);
+            fixedThreadPool.execute(new GetUserInfo(httpClient, httpget));
+            httpget.releaseConnection();
+        }
+        fixedThreadPool.shutdown();
+        threadShutDown(fixedThreadPool,httpClient);
+    }
+ private static void threadShutDown(ExecutorService fixedThreadPool,CloseableHttpClient httpClient)  {
+     while (true) {
+         if (fixedThreadPool.isTerminated()) {
+             try {
+                 httpClient.close();
+             } catch (IOException e) {
+                 e.printStackTrace();
+             }
+             System.out.println(Static.topicID.size());
+             System.out.println(
+                     "所有的子线程都结束了");
+             break;
+         }
+     }
+ }
 }

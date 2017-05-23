@@ -10,25 +10,13 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.params.CookiePolicy;
-import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.cookie.ClientCookie;
-import org.apache.http.cookie.MalformedCookieException;
-import org.apache.http.cookie.SetCookie;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.cookie.BasicExpiresHandler;
-import org.apache.http.impl.cookie.BrowserCompatSpec;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
-import org.apache.http.util.TextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -38,7 +26,7 @@ public class GetUserUrl extends Thread {
     private final CloseableHttpClient httpClient;
     private final HttpContext context;
     private final HttpPost httppost;
-    private UserDao userDao = (UserDao) SpringContextUtil.getBean("userDao");//多线程中无法使用自动注入
+    private UserDao userDao = (UserDao) SpringContextUtil.getBean("userDao");//多线程中无法使用自动注入,需要使用工具类注入
 
     public GetUserUrl(CloseableHttpClient httpClient, HttpPost httppost) {
         this.httpClient = httpClient;
@@ -72,31 +60,29 @@ public class GetUserUrl extends Thread {
                 httppost.setEntity(entityPost);
 
                 CloseableHttpResponse response = httpClient.execute(httppost, context);
-                System.out.println("in test "+response+">>>>>>");
                 HttpEntity entity = response.getEntity();
-                System.out.println("in test "+entity+"<<<<<<<<");
                 try {
                     if (entity != null) {
 
                         //在栈区创建可能快一点
                         String body = EntityUtils.toString(entity, "UTF-8");
-                        File file = new File("D:\\新建文件夹\\爬虫\\test" + offset + ".txt");
-                        if (!file.exists())
-                            file.createNewFile();
-                        FileOutputStream fileOutputStream = new FileOutputStream(file, true);//加上true之后就是追加
-                        byte[] bytes = body.getBytes();
-                        fileOutputStream.write(bytes);
+                        System.out.println(httppost.getURI().toString().substring(28,37)+""+offset+">>>");
+//                        File file = new File("D:\\新建文件夹\\爬虫\\" +httppost.getURI()+ offset + ".txt");
+//                        if (!file.exists())
+//                            file.createNewFile();
+//                        FileOutputStream fileOutputStream = new FileOutputStream(file, true);//加上true之后就是追加
+//                        byte[] bytes = body.getBytes();
+//                        fileOutputStream.write(bytes);
                         //跳出条件2
                         if (body.length() < 100) {
                             System.out.println("body"+body);
                             //  System.out.println("-------------------线程结束--------------------------");
-
                             continue;
                         }
 
                         //注:这里是每个分话题爬取的前多少个用户 我这里是前2000个 每个分话题想设置爬多少个就设置多少。
-                        if (offset > 2000) {
-                            System.out.println("-------------------线程爬取了20000个 结束-------------------");
+                        if (offset > 40) {
+                            System.out.println("-------------------线程爬取了40个 结束-------------------");
                             break;
                         }
                         String regex = "people...[a-zA-z-]{0,200}\">";
@@ -109,24 +95,24 @@ public class GetUserUrl extends Thread {
                             String s = m.group();
                             //System.out.println(i);
                             String user = s.substring(8, s.length() - 3);
-                            System.out.println(user);
-                            if (!Static.map.contains(user)) {
-                                System.out.println(Thread.currentThread() + ">>>>>");
+                            if (Static.map.get(user)==null) {
+                               // System.out.println(Thread.currentThread() + ">>>>>");
                                 Static.map.put(user, Static.UserCount.incrementAndGet());
                                 userDao.insertUser(user);
-                                System.out.println(user);
+                                //System.out.println(user);
                             }
 
                             //System.out.println("Map大小" + Static.map.size());
 
                         }
-                        System.out.println("topicid为" + httppost.getURI() + "的offset=" + offset);
+                        System.out.println("当前线程为"+Thread.currentThread()+">>>"+"topicid为" + httppost.getURI() + "的offset=" + offset);
 
                         EntityUtils.consume(entity);
                     }
                 } finally {
                     response.close();
                     EntityUtils.consume(entity);
+                    System.out.println("in finally");
                     offset = offset + 20;
                 }
             }

@@ -25,7 +25,7 @@
           class="org.mybatis.spring.SqlSessionFactoryBean"
           p:dataSource-ref="dataSource"
           p:configLocation="classpath:mybatisConfig.xml"
-          p:mapperLocations="classpath:mybatis/zhihuUser.xml"/>
+          p:mapperLocations="classpath:mybatis/*.xml"/>
     <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer"
           p:sqlSessionFactoryBeanName="sqlSessionFactory"
           p:basePackage="com.zhengyao.dao"/>

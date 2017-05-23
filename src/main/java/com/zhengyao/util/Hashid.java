@@ -4,35 +4,35 @@ import java.util.UUID;
 
 public class Hashid {
     public Hashid() {
-    } 
-    /** 
-     * »ñµÃÒ»¸öUUID 
-     * @return String UUID 
-     */ 
-    public static String getUUID(){ 
-        String s = UUID.randomUUID().toString(); 
-        //È¥µô¡°-¡±·ûºÅ 
-        return s.substring(0,8)+s.substring(9,13)+s.substring(14,18)+s.substring(19,23)+s.substring(24); 
-    } 
-    /** 
-     * »ñµÃÖ¸¶¨ÊýÄ¿µÄUUID 
-     * @param number int ÐèÒª»ñµÃµÄUUIDÊýÁ¿ 
-     * @return String[] UUIDÊý×é 
-     */ 
-    public static String[] getUUID(int number){ 
-        if(number < 1){ 
-            return null; 
-        } 
-        String[] ss = new String[number]; 
-        for(int i=0;i<number;i++){ 
-            ss[i] = getUUID(); 
-        } 
-        return ss; 
-    } 
-    public static void main(String[] args){ 
-        String[] ss = getUUID(10); 
-        for(int i=0;i<ss.length;i++){ 
-            System.out.println(ss[i]); 
-        } 
-    } 
-}   
+    }
+    /**
+     * èŽ·å¾—ä¸€ä¸ªUUID
+     * @return String UUID
+     */
+    public static String getUUID(){
+        String s = UUID.randomUUID().toString();
+        //åŽ»æŽ‰â€œ-â€ç¬¦å·
+        return s.substring(0,8)+s.substring(9,13)+s.substring(14,18)+s.substring(19,23)+s.substring(24);
+    }
+    /**
+     * èŽ·å¾—æŒ‡å®šæ•°ç›®çš„UUID
+     * @param number int éœ€è¦èŽ·å¾—çš„UUIDæ•°é‡
+     * @return String[] UUIDæ•°ç»„
+     */
+    public static String[] getUUID(int number){
+        if(number < 1){
+            return null;
+        }
+        String[] ss = new String[number];
+        for(int i=0;i<number;i++){
+            ss[i] = getUUID();
+        }
+        return ss;
+    }
+    public static void main(String[] args){
+        String[] ss = getUUID(10);
+        for(int i=0;i<ss.length;i++){
+            System.out.println(ss[i]);
+        }
+    }
+}

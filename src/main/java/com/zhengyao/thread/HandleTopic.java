@@ -63,7 +63,11 @@ public class HandleTopic extends Thread {
                     if (entity != null) {
                         String body = EntityUtils.toString(entity, "UTF-8");
                         if (body.length() < 100) {
-                            System.out.println("-----------------------线程结束----------------------");
+                            System.out.println("-----------------------线程爬取失败----------------------"+body);
+                            System.out.println("该线程访问的是"+topicid+"的子话题");
+                            break;
+                        }
+                        if(offset>60){
                             break;
                         }
                        // System.out.println(Thread.currentThread() + ">>>");
@@ -78,7 +82,7 @@ public class HandleTopic extends Thread {
                             count++;
                             Static.SecondtopicID.add(s.substring(7));
                         }
-                        System.out.println("topicid为" + topicid + "的offset=" + offset);
+                       // System.out.println("topicid为" + topicid + "的offset=" + offset);
                         offset += 20;
                     }
                 } finally {

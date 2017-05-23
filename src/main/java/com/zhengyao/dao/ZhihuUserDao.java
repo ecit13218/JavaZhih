@@ -3,6 +3,6 @@ package com.zhengyao.dao;
 
 import com.zhengyao.entity.ZhiHuUser;
 
-public interface ZhihuuserDao {
-    int insert(ZhiHuUser user);
+public interface ZhihuUserDao {
+    void insert(ZhiHuUser user);
 }
