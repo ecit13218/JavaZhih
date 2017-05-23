@@ -41,7 +41,7 @@ public class HandleTopic extends Thread {
     @Override
     public void run() {
         try {
-            System.out.println("Thread" + topicid + "Start.....");
+            //System.out.println("Thread" + topicid + "Start.....");
             Integer offset = 0;
             while (true) {
                 //1 设置请求header
@@ -67,7 +67,7 @@ public class HandleTopic extends Thread {
                             System.out.println("该线程访问的是"+topicid+"的子话题");
                             break;
                         }
-                        if(offset>60){
+                        if(offset>=60){//爬取每个话题下60个子话题
                             break;
                         }
                        // System.out.println(Thread.currentThread() + ">>>");
@@ -90,7 +90,7 @@ public class HandleTopic extends Thread {
                     response.close();
                 }
             }
-            System.out.println("Thread--------------------------------------:" + topicid + "爬取数量:" + count);
+           // System.out.println("Thread--------------------------------------:" + topicid + "爬取数量:" + count);
         } catch (ClientProtocolException ex) {
             ex.printStackTrace();
         } catch (IOException ex) {

@@ -65,12 +65,11 @@ public class GetUserInfo extends Thread {
         Matcher m = p.matcher(body);
         ZhiHuUser user=new ZhiHuUser();
         while (m.find()) {
-            //System.out.println(m.group());
-            System.out.println(m.group());
-            System.out.println("--------------------------------");
+           // System.out.println(m.group());
+          //  System.out.println("--------------------------------");
             makeUser(m.group(),user);
         }
-        System.out.println(user);
+        //System.out.println(user);
         return user;
     }
     private void makeUser(String content,ZhiHuUser user){

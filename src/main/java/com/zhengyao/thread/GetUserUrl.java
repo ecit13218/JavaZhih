@@ -66,7 +66,7 @@ public class GetUserUrl extends Thread {
 
                         //在栈区创建可能快一点
                         String body = EntityUtils.toString(entity, "UTF-8");
-                        System.out.println(httppost.getURI().toString().substring(28,37)+""+offset+">>>");
+                 //      System.out.println(httppost.getURI().toString().substring(28,37)+""+offset+">>>");
 //                        File file = new File("D:\\新建文件夹\\爬虫\\" +httppost.getURI()+ offset + ".txt");
 //                        if (!file.exists())
 //                            file.createNewFile();
@@ -81,8 +81,8 @@ public class GetUserUrl extends Thread {
                         }
 
                         //注:这里是每个分话题爬取的前多少个用户 我这里是前2000个 每个分话题想设置爬多少个就设置多少。
-                        if (offset > 40) {
-                            System.out.println("-------------------线程爬取了40个 结束-------------------");
+                        if (offset > 2000) {
+                            System.out.println("-------------------线程爬取了2000个 结束-------------------");
                             break;
                         }
                         String regex = "people...[a-zA-z-]{0,200}\">";
@@ -98,21 +98,17 @@ public class GetUserUrl extends Thread {
                             if (Static.map.get(user)==null) {
                                // System.out.println(Thread.currentThread() + ">>>>>");
                                 Static.map.put(user, Static.UserCount.incrementAndGet());
-                                userDao.insertUser(user);
+                                //userDao.insertUser(user);
                                 //System.out.println(user);
                             }
-
                             //System.out.println("Map大小" + Static.map.size());
-
                         }
-                        System.out.println("当前线程为"+Thread.currentThread()+">>>"+"topicid为" + httppost.getURI() + "的offset=" + offset);
-
+                        //System.out.println("当前线程为"+Thread.currentThread()+">>>"+"topicid为" + httppost.getURI() + "的offset=" + offset);
                         EntityUtils.consume(entity);
                     }
                 } finally {
                     response.close();
                     EntityUtils.consume(entity);
-                    System.out.println("in finally");
                     offset = offset + 20;
                 }
             }

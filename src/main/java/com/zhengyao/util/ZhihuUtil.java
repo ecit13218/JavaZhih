@@ -76,19 +76,15 @@ public class ZhihuUtil {
         //System.out.println("--------------- " + Static.topicID.size() + "--------------- ");
         // 注意这里不能写 i < MyQueue.topicID.size() 因为下面拿一个这里始终要变
         int len = Static.topicID.size();
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < len; i++) {
             String url = "https://www.zhihu.com/node/TopicsPlazzaListV2";
             HttpPost httppost = new HttpPost(url);
             httppost.releaseConnection();
             fixedThreadPool.execute(new HandleTopic(httpClient, httppost, Static.topicID.poll()));
-            System.out.println(i + "---------------------");
-
         }
-
         // 爬取完后进入下一步
         fixedThreadPool.shutdown();
         threadShutDown(fixedThreadPool,httpClient);
-
     }
 
     public static void getAllUserUrl() throws InterruptedException, SQLException, IOException {
@@ -113,7 +109,7 @@ public class ZhihuUtil {
             try {
                 HttpPost httppost = new HttpPost(
                         "https://www.zhihu.com/topic/" + Static.SecondtopicID.take() + "/followers");
-                System.out.println(httppost.getURI());
+                //System.out.println(httppost.getURI());
                 fixedThreadPool.execute(new GetUserUrl(httpClient, httppost));
                 httppost.releaseConnection();
             } catch (InterruptedException e) {
@@ -123,8 +119,8 @@ public class ZhihuUtil {
         }
 
         fixedThreadPool.shutdown();
-        TimeUnit.SECONDS.sleep(10);
-        //threadShutDown(fixedThreadPool,httpClient);
+        //TimeUnit.SECONDS.sleep(10);
+        threadShutDown(fixedThreadPool,httpClient);
 //        System.out.println("*******************");
 //        System.out.println(Static.map);
 //        System.out.println(Static.map.size());
@@ -132,7 +128,7 @@ public class ZhihuUtil {
     public static void getAllUser() throws InterruptedException, SQLException, IOException
     {
 
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(4);
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(5);
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(200);// 设置最大连接数
         cm.setDefaultMaxPerRoute(200);// 对每个指定连接的服务器（指定的ip）可以创建并发20 socket进行访问
