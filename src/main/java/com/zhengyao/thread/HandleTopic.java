@@ -90,7 +90,7 @@ public class HandleTopic extends Thread {
                     response.close();
                 }
             }
-           // System.out.println("Thread--------------------------------------:" + topicid + "爬取数量:" + count);
+            System.out.println("Thread------"+currentThread()+"爬取" + topicid + "爬取数量:" + count);
         } catch (ClientProtocolException ex) {
             ex.printStackTrace();
         } catch (IOException ex) {

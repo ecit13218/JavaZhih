@@ -2,6 +2,8 @@ package com.zhengyao.thread;
 
 import com.zhengyao.dao.ZhihuUserDao;
 import com.zhengyao.entity.ZhiHuUser;
+import com.zhengyao.statics.CookiesStatic;
+import com.zhengyao.statics.RegexStatic;
 import com.zhengyao.statics.Static;
 import com.zhengyao.util.SpringContextUtil;
 import com.zhengyao.util.StringUtil;
@@ -26,7 +28,7 @@ public class GetUserInfo extends Thread {
     private final CloseableHttpClient httpClient;
     private final HttpContext context;
     private final HttpGet httpget;
-    private ZhihuUserDao zhihuUserDao= (ZhihuUserDao) SpringContextUtil.getBean("zhihuUserDao");
+    private ZhihuUserDao zhihuUserDao = (ZhihuUserDao) SpringContextUtil.getBean("zhihuUserDao");
 
     public GetUserInfo(CloseableHttpClient httpClient, HttpGet httpget) {
         this.httpClient = httpClient;
@@ -34,13 +36,14 @@ public class GetUserInfo extends Thread {
         this.httpget = httpget;
 
     }
+
     @Override
     public void run() {
         try {
             //必须要手机发包才能访问
-            httpget.setHeader("Cookie", "d_c0=\"AHDCdwGYTguPTtGBj-vSi-ejC8OM9-KRksY=|1487032899\"; _zap=0c11db2f-c1ae-478e-b47b-032ee7517e05; _ga=GA1.2.1454163689.1489975247; q_c1=1535925aa8bc487384ca31eea8da1a31|1495116908000|1487032899000; _xsrf=682220a4595e71745487f892be0f0f45; r_cap_id=\"NDUxOTZiNDE4OTdhNDA3NWFhNjM5MGUyNTNjYWE0MDE=|1495467084|4afe69028afdd053859f9dca41e35b095be1d632\"; cap_id=\"NDIwZTM2MDRhODNjNGYxMDliMjIxNmJhNTFhOWNkYzU=|1495467084|5b581f9cf81d71f6c2c511e79e97aa6d3c8b54d3\"; aliyungf_tc=AQAAAO4SETVaugIA1M10ew1auHs8fqkx; acw_tc=AQAAAFAJjwLRugIA1M10e7XR0l+BZT/X; s-q=403; s-i=7; sid=j4980kf8; s-t=autocomplete; __utma=51854390.1208297164.1492506085.1495465651.1495472789.68; __utmb=51854390.0.10.1495472789; __utmc=51854390; __utmz=51854390.1493110661.21.8.utmcsr=zhihu.com|utmccn=(referral)|utmcmd=referral|utmcct=/question/38597960; __utmv=51854390.100-1|2=registration_date=20140516=1^3=entry_date=20140516=1;"
-                    + "z_c0=" + Static.getCookie());
-            httpget.setHeader("User-Agent", "Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_0 like Mac OS X; en-us) AppleWebKit/532.9 (KHTML, like Gecko) Version/4.0.5 Mobile/8A293 Safari/6531.22.7");
+            String cookie = CookiesStatic.getCookie()[0];
+            httpget.setHeader("Cookie", cookie);
+            httpget.setHeader("User-Agent", Static.phoneUserAgent);
             CloseableHttpResponse response = httpClient.execute(
                     httpget, context);
             HttpEntity entity = response.getEntity();
@@ -48,9 +51,11 @@ public class GetUserInfo extends Thread {
                 String body = EntityUtils.toString(entity, "UTF-8");
                 //System.out.println(body);
                 ZhiHuUser user = setUserInfo(body);
-                //System.out.println(user);
-               // System.out.println("_________________________________________________");
-                zhihuUserDao.insert(user);
+                if(user.getName().equals("知乎")){
+                    System.out.println(cookie);}else{
+                System.out.println(user);
+                System.out.println("_________________________________________________");
+                zhihuUserDao.insert(user);}
             }
 
         } catch (ClientProtocolException e) {
@@ -59,22 +64,29 @@ public class GetUserInfo extends Thread {
             e.printStackTrace();
         }
     }
-    private ZhiHuUser setUserInfo(String body){
+
+    private ZhiHuUser setUserInfo(String body) {
         //正则匹配
-        Pattern p = Pattern.compile(Static.regex);
+        Pattern p = Pattern.compile(RegexStatic.userInfoRegex);
         Matcher m = p.matcher(body);
-        ZhiHuUser user=new ZhiHuUser();
+        ZhiHuUser user = new ZhiHuUser();
         while (m.find()) {
-           // System.out.println(m.group());
-          //  System.out.println("--------------------------------");
-            makeUser(m.group(),user);
+            // System.out.println(m.group());
+            //  System.out.println("--------------------------------");
+            makeUser(m.group(), user);
         }
         //System.out.println(user);
         return user;
     }
-    private void makeUser(String content,ZhiHuUser user){
-        if (content.startsWith("<title>"))
-            user.setName(content.substring(8, content.length() - 13));
+
+    private void makeUser(String content, ZhiHuUser user) {
+        if (content.startsWith("<title>")) {
+            // System.out.println("name is ="+content);
+            if (content.length() > 20)
+                user.setName(content.substring(8, content.length() - 13));
+            else
+                user.setName("知乎");
+        }
         if (content.startsWith("url"))
             user.setUserUrl(content.substring(4, content.length() - 2));
         if (content.startsWith("ellipsis"))
@@ -92,7 +104,7 @@ public class GetUserInfo extends Thread {
         if (content.startsWith("description"))
             user.setProfiles(content.substring(19, content.length() - 11));
         if (content.startsWith("data-gender"))
-            user.setSex((content.substring(13, content.length() - 1)).equals("她") ? 0 : 1);
+            user.setSex(((content.substring(13, content.length() - 1)).equals("她")) ? 0 : 1);
         if (content.endsWith("赞同"))
             user.setSuppose(StringUtil.stringToNumber(content, 0, content.length() - 11));
         if (content.endsWith("感谢"))

@@ -89,7 +89,7 @@ public class ZhihuUtil {
 
     public static void getAllUserUrl() throws InterruptedException, SQLException, IOException {
         //这里的线程不能设置太大 由于知乎的反爬机制，同一ip同一时间发过多请求只能响应部分请求
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(5);
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(3);
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(200);// 设置最大连接数
         cm.setDefaultMaxPerRoute(200);// 对每个指定连接的服务器（指定的ip）可以创建并发20 socket进行访问
@@ -102,7 +102,7 @@ public class ZhihuUtil {
         //setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD)  设置以后防止Invalid 'expires' attribute 错误
 
 
-        System.out.println(Static.SecondtopicID.size());
+        System.out.println("Static.SecondtopicID.size()="+Static.SecondtopicID.size());
         // 注意这里还是不能用i<MyQueue.SecondtopicID.size()
         int len = Static.SecondtopicID.size();
         for (int i = 0; i < len; i++) {
@@ -128,7 +128,7 @@ public class ZhihuUtil {
     public static void getAllUser() throws InterruptedException, SQLException, IOException
     {
 
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(5);
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(3);
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(200);// 设置最大连接数
         cm.setDefaultMaxPerRoute(200);// 对每个指定连接的服务器（指定的ip）可以创建并发20 socket进行访问
