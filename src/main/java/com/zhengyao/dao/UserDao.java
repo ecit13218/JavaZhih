@@ -6,5 +6,6 @@ package com.zhengyao.dao;
  */
 public interface UserDao {
     public void insertUser(String url);
+    public void deleteUser(String url);
     public void deleteUser2(String url);
 }
