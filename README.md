@@ -1,2 +1,2 @@
 # JavaZhihuCrawler
-使用SSM+Maven爬去知乎关注记录
+使用SSM+Maven爬取知乎关注记录
